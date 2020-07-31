@@ -69,31 +69,7 @@ class Runner:
     def selection(self, runners, parents):
         first, second, third, fourth = 1000, 1000, 1000, 1000
         runner1, runner2, runner3, runner4 = runners[0], runners[1], runners[2], runners[3]
-        for runner in runners:
-            if runner.fitness < first:
-                runner4 = runner3
-                runner3 = runner2
-                runner2 = runner1
-                runner1 = runner
-                fourth = third
-                third = second
-                second = first
-                first = runner.fitness
-            elif runner.fitness < second:
-                runner4 = runner3
-                runner3 = runner2
-                runner2 = runner
-                fourth = third
-                thrid = second
-                second = runner.fitness
-            elif runner.fitness < third:
-                runner4 = runner3
-                runner3 = runner
-                fourth = third
-                third = runner.fitness
-            elif runner.fitness < fourth:
-                runner4 = runner
-                fourth = runner.fitness
+
         parents = [runner1, runner2, runner3, runner4]
         for i in range(len(parents[0].moves)):
             if parents[0].moves[i] == parents[1].moves[i] == parents[2].moves[i] == parents[3].moves[i]:
