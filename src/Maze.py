@@ -4,6 +4,8 @@ import pygame
 class Maze:
     def __init__(self, dis):
         self.dis = dis
+        self.start_point = (10, 270)
+        self.end_point = (580, 270)
         self.maze = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                     [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
                     [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
