@@ -1,78 +1,78 @@
 import pygame
 import math
-import random
-from threading import Thread
 
 
 class Runner:
-    def __init__(self, x, y, width, vel, num_moves, color):
+    def __init__(self, x, y, width, vel, color, moves):
         self.x = x
         self.y = y
         self.width = width
         self.vel = vel
-        self.num_moves = num_moves
         self.color = color
-        self.fitness = 0
         self.moves = []
+        self.last_move = 'left'
 
-    def initialize_population(self, maze, pop_size, parents, colors):
-        runners = []
-        for i in range(pop_size):
-            runner = Runner(maze.start_point[0], maze.start_point[1], 10, 5, 200, colors[random.randint(0, len(colors)-1)])
-            runners.append(runner)
+    def move(self, dis, end_point):
 
-        for runner in runners:
-            for i in range(self.num_moves):
-                num = random.randint(0, 3)
-                if num == 0:
-                    runner.moves.append(parents[0].moves[i])
-                elif num == 1:
-                    runner.moves.append(parents[1].moves[i])
-                elif num == 2:
-                    runner.moves.append(parents[2].moves[i])
-                else:
-                    runner.moves.append(parents[3].moves[i])
-            print(runner.moves)
-        return runners
+        def safe(x, y, width, vel):
+            if dis.get_at((x + width + vel, y)) != (0, 0, 0, 255):  # check right
+                if dis.get_at((x - vel, y)) != (0, 0, 0, 255):  # check left
+                    if dis.get_at((x, y + width + vel)) != (0, 0, 0, 255):  # check down
+                        if dis.get_at((x, y - vel)) != (0, 0, 0, 255):  # check up
+                            return True
+            return False
 
-    def run(self, dis, maze, runners):
-        def movement(runner):  # Decide movement and check for walls
-            def fitness(curr_runner):
-                return math.sqrt((maze.end_point[0] - curr_runner.x)**2 + (maze.end_point[1] - curr_runner.y)**2)
-            # pygame.draw.rect(dis, (255, 255, 255), [runner.x, runner.y, runner.width, runner.width])
-            for move in runner.moves:
-                if move == 0:
-                    continue
-                elif move == 1 and dis.get_at((runner.x - runner.vel, runner.y)) != (
-                0, 0, 0, 255) and runner.x - runner.vel > 0:  # LEFT
-                    runner.x -= runner.vel
-                elif move == 2 and dis.get_at((runner.x + runner.vel + runner.width, runner.y)) != (
-                0, 0, 0, 255):  # RIGHT
-                    runner.x += runner.vel
-                elif move == 3 and dis.get_at((runner.x, runner.y - runner.vel)) != (0, 0, 0, 255):  # UP
-                    runner.y -= runner.vel
-                elif dis.get_at((runner.x, runner.y + runner.vel + runner.width)) != (0, 0, 0, 255):  # DOWN
-                    runner.y += runner.vel
-                runner.fitness = fitness(runner)
-                pygame.draw.rect(dis, runner.color, [runner.x, runner.y, runner.width, runner.width])
-                pygame.display.update()
-                pygame.event.pump()
+        def calculate_distance(x1, y1, x2, y2):
+            return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
-        threads = []
-        for runner in runners:
-            process = Thread(target=movement, args=(runner,))
-            process.start()
-            threads.append(process)
-        for process in threads:
-            process.join()
+        def get_poss_moves():
+            poss_moves = {}
+            if safe(self.x + self.width + self.vel, self.y, self.width, self.vel) and self.last_move != 'left':
+                poss_moves['right'] = calculate_distance(self.x + self.vel, self.y, end_point[0], end_point[1])
+            if safe(self.x - self.vel, self.y, self.width, self.vel) and self.last_move != 'right':
+                poss_moves['left'] = calculate_distance(self.x - self.vel, self.y, end_point[0], end_point[1])
+            if safe(self.x, self.y - self.vel, self.width, self.vel) and self.last_move != 'down':
+                poss_moves['up'] = calculate_distance(self.x, self.y - self.vel, end_point[0], end_point[1])
+            if safe(self.x, self.y + self.width + self.vel, self.width, self.vel) and self.last_move != 'up':
+                poss_moves['down'] = calculate_distance(self.x, self.y + self.vel, end_point[0], end_point[1])
+            return poss_moves
 
-    def selection(self, runners, parents):
-        first, second, third, fourth = 1000, 1000, 1000, 1000
-        runner1, runner2, runner3, runner4 = runners[0], runners[1], runners[2], runners[3]
+        def get_best_move(poss_moves):
+            best_move = list(poss_moves.keys())[0]
+            for move in poss_moves:
+                if poss_moves[move] < poss_moves[best_move]:
+                    best_move = move
+            return best_move
 
-        parents = [runner1, runner2, runner3, runner4]
-        for i in range(len(parents[0].moves)):
-            if parents[0].moves[i] == parents[1].moves[i] == parents[2].moves[i] == parents[3].moves[i]:
-                for parent in parents:
-                    parent.moves[i] = random.randint(0, 4)
-        return parents
+        def detect_pattern():
+            patt_size = 2
+            for k in range(len(self.moves)):
+                for i in range(len(self.moves)):
+                    pattern = self.moves[i:i+patt_size]
+                    for j in range(i + patt_size, len(self.moves) - patt_size):
+                        if self.moves[j:j+patt_size] == pattern:
+                            print("True")
+                            break
+                        print("False")
+                        continue
+                patt_size += 1
+
+        next_move = get_best_move(get_poss_moves())
+        self.moves.append(next_move)
+
+        if next_move == 'right':
+            self.x += self.vel
+            self.last_move = 'right'
+        elif next_move == 'left':
+            self.x -= self.vel
+            self.last_move = 'left'
+        elif next_move == 'up':
+            self.y -= self.vel
+            self.last_move = 'up'
+        else:
+            self.y += self.vel
+            self.last_move = 'down'
+        detect_pattern()
+        pygame.draw.rect(dis, self.color, [self.x, self.y, self.width, self.width])
+        pygame.event.pump()
+
