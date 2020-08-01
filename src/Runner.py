@@ -49,6 +49,8 @@ class Runner:
             for k in range(len(self.moves)):
                 for i in range(len(self.moves)):
                     pattern = self.moves[i:i+patt_size]
+                    if all(elem == pattern[0] for elem in pattern):
+                        continue
                     for j in range(i + patt_size, len(self.moves) - patt_size):
                         if self.moves[j:j+patt_size] == pattern:
                             print("True")
