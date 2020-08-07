@@ -15,28 +15,31 @@ clock = pygame.time.Clock()
 fps = 360
 
 # ------ Maze ------
-maze = Maze(dis, 50)
+maze = Maze(dis, dis_width)
 start = maze.get_start()
 maze.solve(start[0], start[1])
+print(start)
 
 # ------ Runners ------
-runner = Runner()
+runner = Runner((start[1] * maze.block_size) + (maze.block_size / 2), (start[0] * maze.block_size) + (maze.block_size / 2), 10)
+
+count = 0
+def gameLoop(count):
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        dis.fill((255, 255, 255))
+        block_size = maze.draw()
+        if count < len(maze.path):
+            for i in range(maze.block_size):
+                runner.run(dis, block_size, maze.path[count])
+            count += 1
+        pygame.display.update()
+        # pygame.time.wait(500)
+        clock.tick(fps)
 
 
-# def gameLoop():
-#     running = True
-#     while running:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 running = False
-        # dis.fill((255, 255, 255))
-        # maze.draw()
-        # if len(runner.moves) > 8:
-        #     runner.moves = runner.moves[-8:]
-        # runner.move(dis, maze.start_point, maze.end_point, maze.block_size, maze.dead_ends)
-        # pygame.display.update()
-        # clock.tick(fps)
-
-#
-# gameLoop()
+gameLoop(count)
 pygame.quit()
